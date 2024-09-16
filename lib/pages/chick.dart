@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously, prefer_const_constructors
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -14,7 +12,6 @@ class KukuRegistrationForm extends StatefulWidget {
 class _KukuRegistrationFormState extends State<KukuRegistrationForm> {
   final TextEditingController _idadiController = TextEditingController();
   final TextEditingController _umriController = TextEditingController();
-  final TextEditingController _typeController = TextEditingController();
   String? selectedAina;
 
   final List<String> ainaKuku = [
@@ -24,13 +21,13 @@ class _KukuRegistrationFormState extends State<KukuRegistrationForm> {
 
   final _formKey = GlobalKey<FormState>();
 
-  // Auth service to obtain the create user method
-
   var isLoader = false;
 
+  // Submit form with batch ID and refresh token in headers
   Future<void> _submitForm() async {
-     final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('refresh_token');
+    final batchId = prefs.getString('batch_id');  // Retrieve the batch ID
 
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -39,12 +36,11 @@ class _KukuRegistrationFormState extends State<KukuRegistrationForm> {
 
       var data = {
         'idadi': _idadiController.text, // Directus expects snake_case keys
-        'umri': _umriController.toString(),
-        'aina': _typeController.text,
-        // Assuming 'phone' field exists in your API
+        'umri': _umriController.text,
+        'aina': selectedAina,
       };
 
-      var url = Uri.parse('https://directus-fuga.smarcrib.site/users');
+      var url = Uri.parse('https://directus-fuga.smarcrib.site/items/batches');
 
       try {
         // Send POST request to register the user
@@ -53,13 +49,14 @@ class _KukuRegistrationFormState extends State<KukuRegistrationForm> {
           headers: {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
+            'batch_id': batchId ?? '',  // Add batch ID to headers
           },
           body: json.encode(data),
         );
 
         // Check if the response is successful
         if (response.statusCode == 200 || response.statusCode == 201) {
-          // On success, navigate to the NavigationPage or another page
+          // On success, navigate to the DashboardPage
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => DashboardPage()),
@@ -171,14 +168,7 @@ class _KukuRegistrationFormState extends State<KukuRegistrationForm> {
               // Register Button
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Handle form submission
-                      print('Aina ya kuku: $selectedAina');
-                      print('Idadi: ${_idadiController.text}');
-                      print('Umri: ${_umriController.text}');
-                    }
-                  },
+                  onPressed: _submitForm, // Submit the form
                   child: Text('Jisajili'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal, // Button color
