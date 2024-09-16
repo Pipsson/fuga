@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:fugapp/auth/login.dart';
 import 'package:fugapp/layouts/navigation.dart'; // Assuming this is for the dashboard/navigation page
